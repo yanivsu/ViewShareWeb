@@ -18,6 +18,7 @@ const Handlebars = require('handlebars');
 
 mongoose.connect('mongodb://localhost:27017/');
 
+var imgProduct = require('./models/product');
 var indexRouter = require('./routes/index');
 var uploadRouter = require('./routes/upload');
 var userRouter = require('./routes/userImage');
@@ -38,6 +39,7 @@ app.use(
       saveUninitialized: true
     })
 );
+
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -81,12 +83,36 @@ app.use(exoressValidator({
     };
   }
 }));
-
 app.use('/user',userRouter);
 app.use('/', indexRouter);
 app.use('/upload',uploadRouter);
 
-
+/Image is send me all the image the user was uploaded!/
+app.get('/image',ensureAuthenticated,function(req,res) {
+  imgProduct.getAllImageByUser(res.locals.user._doc.email, function (err, image)
+  {
+    if (err) {
+      return "Error with DB connection";
+    }
+    else
+    {
+      if(image.length != 0)
+      {
+        var result = [];
+        var ret = "";
+        for (var i = 0;i <  image.length; i++) {
+          result.push({name: image[i].name,username: image[i].userName,data: image[i].data.toString('base64'),description:image[i].description});
+        }
+      }
+      else
+      {
+        ret = "you did not upload images yet";
+      }
+    }
+    res.contentType('application/json');
+    res.send(result);
+  });
+});
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -106,6 +132,13 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-
-
+function ensureAuthenticated(req,res,next){
+  if(req.isAuthenticated()){
+    return next();
+  }
+  else{
+    req.flash("error_msg","You are not logged in");
+    res.redirect('/login');
+  }
+}
 module.exports = app;

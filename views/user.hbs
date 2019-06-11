@@ -3,34 +3,34 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>const images = [];</script>
     <title>Carousel Template for Bootstrap</title>
-    <script
-            src="https://code.jquery.com/jquery-3.4.1.slim.js"
-            integrity="sha256-BTlTdQO9/fascB1drekrDVkaKd9PkwBymMlHOiG+qLI="
-            crossorigin="anonymous">
-    </script>
     <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/carousel/">
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/components/modal/">
+
     <!-- Bootstrap core CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
     <!-- Custom styles for this template -->
     <link href="stylesheets/carousel.css" rel="stylesheet">
     <style>
+
         img{
-            border-style: solid;
-            border-width: 2px;
+
             margin: 2px 2px 2px 2px;
             padding: 10px;
             width: 250px;
             height: 150px;
         }
-        img:hover{
-            background-color: #0f6674;
 
-        }
-        img:active{
-            width: 80%;
-            height: 80%;
+        img:hover{
+            color :red;
+            background-color: #0f6674;
+            transform: scale(1.1);
         }
 
     </style>
@@ -80,20 +80,83 @@
     <main role="main">
         <div class="container">
             <div class="images">
-                {{#list nav}}
-                {{/list}}
+                <span class = "imgByJson" data-toggle="modal" data-target="#exampleModalCenter"></span>
             </div>
         </div>
 
-
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" >Picture Name</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="myClear()" >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div id="modal-body">
+                       <h4 class="container-fluid">Description:</h4>
+                        <span class="desc container-fluid"></span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="myClear()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- FOOTER -->
         <footer class="container">
-            <p class="float-right"><a href="#">Back to top</a></p>
+
+            <p class="float-right" ><a href="#">Back to top</a></p>
             <p>&copy; 2017-2018 Company, Inc. &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a></p>
         </footer>
     </main>
-
 </body>
-<script src="../public/javascripts/handlebars-v4.1.2.js"></script>
+
+<script>
+     var imageByJson;
+     $(document).ready(function () {
+        $.get('http://localhost:3000/image',function(data,status)
+        {
+            if(!data){
+                alert("You Dont upload pictures yet");
+            }
+            else{
+                for(var i = 0; i < data.length ; i ++) {
+                    $('.imgByJson').prepend('<img id=' + '"' + i + '"' + 'src=' + '"data:image/jpeg ;base64,' + data[i].data + '"' + ' />');
+                    $('#' + i).click(bigImageClick);
+                }
+                imageByJson = data;
+            }
+
+        });
+    });
+    function bigImageClick(){
+        var x = document.getElementById(this.id);
+        var span = document.createElement('span');
+        var bigImage = x.cloneNode(true);
+        bigImage.id = "focusImage";
+        span.innerHTML = bigImage.outerHTML;
+        document.getElementById('modal-body').prepend(span);
+        /*Add image to modal*/
+        $('#'+bigImage.id).css('width','100%');
+        $('#'+bigImage.id).css('height','100%');
+        $('#'+bigImage.id).css('transform','none');
+        $('#'+bigImage.id).css('pointer-events','none');
+        /*Update name of image in title*/
+        $('.modal-title').text(imageByJson[this.id].name);
+        /*Add Description*/
+        $('.desc').text(imageByJson[this.id].description);
+
+
+    }
+    function myClear(){
+        /*Reset the array*/
+        document.getElementById('focusImage').remove();
+
+    }
+</script>
+
+</html>
 
 

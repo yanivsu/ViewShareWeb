@@ -1,6 +1,5 @@
 var express = require('express');
 var fs = require('fs');
-var bodyParser = require('body-parser');
 var router = express.Router();
 var mongoose = require('mongoose');
 var mongodb = require('mongodb');
@@ -9,43 +8,29 @@ var upload = require('express-fileupload');
 
 /*Product Image Var*/
 var Product = require('../models/product');
-
-/*Must to upload image to mongoDB*/
-var storage = multer.diskStorage({
-    destination: function (req,file,callback) {
-        callback(null,'./uploads');
-    },
-    filename: function (req,file,callback) {
-        callback(null,new Date().toISOString() + file.filename)
-    }
-});
-
-var uploadWithMulter = multer({storage:storage});
-
 router.use(upload()); // configure middleware
+router.post('/',function (req,res) {
 
 
-router.post('/',uploadWithMulter.single('productImage'),function (req,res) {
-
-
-    console.log(req.files);
     var file = req.files.MyImage;
-    console.log(file);
-   // var bitmap = fs.readFileSync(file);
-    console.log(file.data);
-
+    if(req.files.MyImage==undefined)
+    {
+        req.flash('error_msg','You need to select file first');
+        res.redirect('/upload');
+    }
+    /*Covnert to Json Pruduct and save it to mongo*/
     var newProduct = new Product({
         _id:mongoose.Types.ObjectId(),
         name: file.name,
         userName:res.locals.user.email,
-        data: file.data
+        data: file.data,
+        description: req.body.description,
+        country: req.body.country
     });
 
     newProduct.save();
     req.flash('success_msg','Your Picture is uploaded');
     res.redirect('/upload');
-   // res.redirect('/upload',{message:req.flash("success_msg","Your Picture is uploaded")});
-
 });
 /* GET upload page. */
 router.get('/', ensureAuthenticated,function(req, res, next) {
